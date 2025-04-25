@@ -14,8 +14,7 @@
     ],
     "routes":[
         {
-            "src":"/(.*)",
-            "dist":"server.js"
+            "src":"/(.*)"
         }
     ]   
 }
