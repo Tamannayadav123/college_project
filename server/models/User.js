@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
         enrolledCourses: [
             {
                 type:mongoose.Schema.Types.ObjectId,
-                ref:Course
+                // ref:Course
             }
         ]
     },{timestamps:true}
