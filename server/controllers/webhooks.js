@@ -15,7 +15,7 @@ export const clerkWebhooks = async (req,res)=>
 
         const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
         const evt = whook.verify(payload,headers);
-
+        
         const {data,type} = evt;
         switch(type)
         {
