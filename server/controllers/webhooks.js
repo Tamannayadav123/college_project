@@ -48,6 +48,6 @@ export const clerkWebhooks = async (req,res)=>
                 break;
         }
     } catch(error){
-        res.json({success:false,meessage:error.meessage})
+        res.json({success:false,message:error.message})
     }
 }
