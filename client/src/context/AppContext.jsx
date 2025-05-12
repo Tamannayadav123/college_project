@@ -74,10 +74,15 @@ export const AppContextProvider = (props)=>
         setEnrolledCourses(dummyCourses)
     }
 
-    const logToken = async()=>
-    {
-        console.log(await getToken());
-    }
+    const logToken = async () => {
+        try {
+          const token = await getToken();
+          console.log("Token:", token);
+        } catch (err) {
+          console.error("Failed to get token:", err);
+        }
+      };
+      
     useEffect(()=>
     {
         if(user)

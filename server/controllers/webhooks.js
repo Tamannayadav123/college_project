@@ -65,7 +65,7 @@ export const stripeWebhooks = async(request,response)=>
     const sig = request.headers['stripe-signatures'];
     let event ;
     try{
-        event = Stripe.webhooks.constructEvent(request.body,sig,process.env.STRIPE_WEBHOOK_SECRET);
+        event = Stripe.webhooks.constructEvent(request.body , sig , process.env.STRIPE_WEBHOOK_SECRET);
     }
     catch(err)
     {
