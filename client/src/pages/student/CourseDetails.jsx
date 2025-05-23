@@ -6,6 +6,8 @@ import { assets } from "../../assets/assets";
 import humanizeDuration from "humanize-duration";
 import Footer from "../../components/student/Footer";
 import YouTube from 'react-youtube'
+import { toast } from "react-toastify";
+import axios from "axios";
 
 const CourseDetails = () => {
   const { id } = useParams();
@@ -20,17 +22,60 @@ const CourseDetails = () => {
     calculateNoOfLectures,
     calculateCourseDuration,
     calculateChapterTime,
-    currency,
+    currency,backendUrl,userData,getToken
   } = useContext(AppContext);
 
   const fetchCourseData = async () => {
-    const findCourse = allCourses.find((course) => course._id === id);
-    setCourseData(findCourse);
-  };
+    try {
+      const {data} = await axios.get(backendUrl + '/api/course/' + id);
+      if(data.success)
+      {
+        setCourseData(data.courseData)
+      }else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const enrollCourse = async ()=>
+  {
+    try {
+      if(!userData)
+      {
+        return toast.warn('Login to Enroll');
+      }if(isAlreadyEnrolled)
+      {
+        return toast.warn('Already  Enrolled')
+      }
+      const token = await getToken();
+      const {data} = await axios.post(backendUrl + '/api/user/purchase',{courseId:courseData._id},
+        {headers:{Authorization:`Bearer ${token}`}})
+      if(data.success)
+      {
+        const{session_url} = data 
+        window.location.replace(session_url)
+      }
+      else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
 
   useEffect(() => {
     fetchCourseData();
-  }, [allCourses]);
+  }, []);
+
+  useEffect(()=>
+  {
+    if(userData && courseData)
+      {
+        setIsAlreadyEnrolled(userData.enrolledCourses.includes(courseData._id))
+      }
+  },[userData,courseData]);
 
   const toggleSection = (index) => {
     setOpenSections((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -43,7 +88,7 @@ const CourseDetails = () => {
 
         {/* left column  */}
         <div className="max-w-xl z-10 text-gray-500">
-          <h1 className="md:text-course-featails-heading-large text-course-deatails-heading-small font-semibold text-gray-800">
+          <h1 className="md:text-course-details-heading-large text-course-details-heading-small font-semibold text-gray-800">
             {courseData.courseTitle}
           </h1>
           <p
@@ -71,24 +116,33 @@ const CourseDetails = () => {
               ))}
             </div>
             <p className="text-blue-500">
-              ({courseData.courseRatings.length}{" "}
-              {courseData.courseRatings.length > 1 ? "ratings" : "rating"})
+              ({courseData.courseRatings?.length || 0}{" "}
+              {courseData.courseRatings?.length > 1 ? "ratings" : "rating"})
             </p>
+
+
             <p>
-              {courseData.enrolledStudents.length}
-              {courseData.enrolledStudents.length > 1 ? "students" : "student"}
+              {courseData?.enrolledStudents?.length || 0}
+              {courseData?.enrolledStudents?.length > 1 ? "students" : "student"}
             </p>
+
           </div>
 
+          {/* <p className="text-sm">
+            Course by
+            <span className="text-blue-600 underline">{courseData.educator.name}</span>
+          </p> */}
+
           <p className="text-sm">
-            Course by{" "}
-            <span className="text-blue-600 underline">GreatStack</span>
+            Course by
+            <span className="text-blue-600 underline">{courseData.educator?.name || 'Educator'}</span>
           </p>
+
 
           <div className="pt-8 text-gray-800">
             <h2 className="text-xl font-semibold">Course Structure</h2>
             <div className="pt-5">
-              {courseData.courseContent.map((chapter, index) => (
+              {courseData?.courseContent?.map((chapter, index) => (
                 <div
                   key={index}
                   className="border border-gray-300 bg-white mb-2 rounded"
@@ -110,8 +164,7 @@ const CourseDetails = () => {
                       </p>
                     </div>
                     <p className="text-sm md:text-default">
-                      {chapter.chapterContent.length} lectures -{" "}
-                      {calculateChapterTime(chapter)}
+                      {(chapter.chapterContent?.length || 0)} lectures - {calculateChapterTime(chapter)}
                     </p>
                   </div>
 
@@ -121,7 +174,7 @@ const CourseDetails = () => {
                     }`}
                   >
                     <ul className="list-disc md:pl-10 pl-4 pr-4 py-2 text-gray-600 border-t border-gray-300">
-                      {chapter.chapterContent.map((lecture, i) => (
+                      {(chapter.chapterContent || []).map((lecture, i) => (
                         <li key={i} className="flex items-start gap-2 py-1">
                           <img
                             src={assets.play_icon}
@@ -226,7 +279,7 @@ const CourseDetails = () => {
               </div>
             </div>
             
-            <button className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium">{isAlreadyEnrolled?'Already Enrolled' : 'Enroll Now'}</button>
+            <button onClick={enrollCourse} className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium">{isAlreadyEnrolled?'Already Enrolled' : 'Enroll Now'}</button>
 
             <div className="pt-6">
               <p className="md:text-xl text-lg font-medium text-gray-800">What's in the course?</p>
